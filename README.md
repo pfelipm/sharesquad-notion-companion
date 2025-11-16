@@ -47,20 +47,19 @@ El proceso tiene dos fases: importar desde Google Groups a la hoja, y exportar d
 ### Fase 2: Exportar a JSON y Usar en la Extensión
 
 1.  Una vez generada la hoja, ve a `ShareSquad Companion` → `Exportar a JSON...`.
-2.  **Selecciona la hoja** que acabas de crear.
-3.  Haz clic en **"Exportar"**. Aparecerá un diálogo con el texto en formato JSON.
-4.  **Copia todo el texto** del cuadro.
-5.  Abre la extensión **ShareSquad** en Notion, ve a la pestaña de `Backup` (Copia de seguridad).
-6.  Pega el texto JSON en el área de **"Importar"** y haz clic en el botón para importar.
+2.  En el diálogo que aparece, **selecciona la pestaña** de la hoja de cálculo que contiene los datos de los grupos importados.
+3.  Haz clic en **"Exportar"**. Se descargará automáticamente un archivo JSON con los datos.
+4.  Abre la extensión **ShareSquad** en Notion, ve a la pestaña de `Backup` (Copia de seguridad).
+5.  Usa la función de **"Importar"** de la extensión para cargar el archivo JSON descargado.
 
 Tus grupos y miembros de Google Groups aparecerán ahora como "squads" en la extensión, listos para ser añadidos a cualquier página de Notion.
 
 ## Detalles Técnicos
 
-*   **Arquitectura y Acceso a Grupos:** El script utiliza `HtmlService` para renderizar los diálogos y `GroupsApp` para interactuar con Google Groups. Se eligió `GroupsApp` en lugar del `Admin SDK Directory Service` para que la herramienta pueda ser usada por cualquier usuario de Google, no solo por administradores de Google Workspace. Esto conlleva una limitación importante: el servicio `GroupsApp` es menos potente y solo puede obtener los miembros directos de un grupo (no los miembros de grupos anidados) y únicamente su email (no el nombre del grupo).
+*   **Arquitectura y Acceso a Grupos:** El script utiliza `[HtmlService](https://developers.google.com/apps-script/reference/html/html-service)` para renderizar los diálogos y [GroupsApp](https://developers.google.com/apps-script/reference/groups/groups-app) para interactuar con Google Groups. Se eligió GroupsApp en lugar del [Admin SDK Directory Service](https://developers.google.com/workspace/admin/directory/reference/rest) para que la herramienta pueda ser usada por cualquier usuario de Google, no solo por administradores de Google Workspace. Esto conlleva una limitación importante: el servicio `GroupsApp` es menos potente y solo puede obtener los miembros directos de un grupo (no los miembros de grupos anidados) y únicamente su email (no el nombre del grupo).
 *   **Internacionalización (i18n):** La detección del idioma se realiza en el backend de Apps Script usando `Session.getActiveUserLocale()`. Se configura para mostrar la interfaz en español (ES) para locales de habla hispana y en inglés (EN) para el resto. Todos los textos de la interfaz se almacenan en un objeto `STRINGS` para facilitar su traducción y mantenimiento.
 *   **Dependencias:** La interfaz de los diálogos está construida con HTML y estilizada con **Bootstrap 5**, cargado a través de una CDN para mantener la herramienta ligera.
-*   **Identificación de Hojas:** Para identificar de forma robusta las pestañas de la hoja de cálculo que contienen datos importados por esta herramienta, se utiliza la funcionalidad de `Developer Metadata` de Google Sheets. Esto es más fiable que depender del nombre de la pestaña o del contenido de celdas específicas.
+*   **Identificación de Hojas:** Para identificar de forma robusta las pestañas de la hoja de cálculo que contienen datos importados por esta herramienta, se utiliza la funcionalidad de `[DeveloperMetadata](https://developers.google.com/apps-script/reference/spreadsheet/developer-metadata)` de Google Sheets. Esto es más fiable que depender del nombre de la pestaña o del contenido de celdas específicas.
 
 ## Privacidad de Datos
 
