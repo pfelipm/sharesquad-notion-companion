@@ -73,4 +73,4 @@ Este proyecto ha sido creado y es mantenido por [Pablo Felip](https://www.linked
 
 ## Licencia
 
-Este proyecto se distribuye bajo la licencia GPL-3.0. Consulta el archivo `LICENSE` para más detalles.
+Este proyecto se distribuye bajo la licencia GPL-3.0. Consulta el archivo [LICENSE](/LICENSE) para más detalles.
