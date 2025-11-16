@@ -58,7 +58,7 @@ Tus grupos y miembros de Google Groups aparecerán ahora como "squads" en la ext
 ## Detalles Técnicos
 
 *   **Arquitectura y Acceso a Grupos:** El script utiliza `HtmlService` para renderizar los diálogos y `GroupsApp` para interactuar con Google Groups. Se eligió `GroupsApp` en lugar del `Admin SDK Directory Service` para que la herramienta pueda ser usada por cualquier usuario de Google, no solo por administradores de Google Workspace. Esto conlleva una limitación importante: el servicio `GroupsApp` es menos potente y solo puede obtener los miembros directos de un grupo (no los miembros de grupos anidados) y únicamente su email (no el nombre del grupo).
-*   **Internacionalización (i18n):** La herramienta detecta automáticamente el idioma del usuario (español o inglés) usando `Session.getActiveUserLocale()`. Todos los textos de la interfaz se almacenan en un objeto `STRINGS` para facilitar su traducción y mantenimiento.
+*   **Internacionalización (i18n):** La detección del idioma se realiza en el backend de Apps Script usando `Session.getActiveUserLocale()`. Se configura para mostrar la interfaz en español (ES) para locales de habla hispana y en inglés (EN) para el resto. Todos los textos de la interfaz se almacenan en un objeto `STRINGS` para facilitar su traducción y mantenimiento.
 *   **Dependencias:** La interfaz de los diálogos está construida con HTML y estilizada con **Bootstrap 5**, cargado a través de una CDN para mantener la herramienta ligera.
 
 ## Privacidad de Datos

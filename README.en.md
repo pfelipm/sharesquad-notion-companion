@@ -58,7 +58,7 @@ Your Google Groups and members will now appear as "squads" in the extension, rea
 ## Technical Details
 
 *   **Architecture and Group Access:** The script uses `HtmlService` to render dialogs and `GroupsApp` to interact with Google Groups. `GroupsApp` was chosen over the `Admin SDK Directory Service` so the tool can be used by any Google user, not just Google Workspace administrators. This comes with a significant limitation: the `GroupsApp` service is less powerful and can only retrieve a group's direct members (not members of nested groups) and only their email (not the group's name).
-*   **Internationalization (i18n):** The tool automatically detects the user's language (Spanish or English) using `Session.getActiveUserLocale()`. All UI texts are stored in a `STRINGS` object to facilitate translation and maintenance.
+*   **Internationalization (i18n):** Language detection is performed in the Apps Script backend using `Session.getActiveUserLocale()`. It is configured to display the interface in Spanish (ES) for Spanish-speaking locales and in English (EN) for all others. All UI texts are stored in a `STRINGS` object to facilitate translation and maintenance.
 *   **Dependencies:** The dialog interface is built with HTML and styled with **Bootstrap 5**, loaded via a CDN to keep the tool lightweight.
 
 ## Data Privacy
