@@ -21,6 +21,7 @@ La extensión ShareSquad fue diseñada para ser una herramienta ligera y agnóst
 
 *   **Importación desde Google Groups:** Analiza los grupos a los que pertenece el usuario y vuelca los miembros (email del grupo y email del miembro) en una nueva hoja de cálculo.
 *   **Exportación a JSON compatible:** Convierte los datos de la hoja de cálculo generada al formato JSON que la función de importación de la extensión ShareSquad puede leer.
+*   **Soporte multi-idioma:** Detección automática de idioma (español e inglés) para la interfaz.
 
 ## Instalación
 
@@ -45,7 +46,7 @@ El proceso tiene dos fases: importar desde Google Groups a la hoja, y exportar d
 
 ### Fase 2: Exportar a JSON y Usar en la Extensión
 
-1.  Una vez generada la hoja, ve al menú `ShareSquad Companion` → `Exportar a JSON...`.
+1.  Una vez generada la hoja, ve a `ShareSquad Companion` → `Exportar a JSON...`.
 2.  **Selecciona la hoja** que acabas de crear.
 3.  Haz clic en **"Exportar"**. Aparecerá un diálogo con el texto en formato JSON.
 4.  **Copia todo el texto** del cuadro.
@@ -54,11 +55,21 @@ El proceso tiene dos fases: importar desde Google Groups a la hoja, y exportar d
 
 Tus grupos y miembros de Google Groups aparecerán ahora como "squads" en la extensión, listos para ser añadidos a cualquier página de Notion.
 
+## Detalles Técnicos
+
+*   **Arquitectura:** El script utiliza el servicio `HtmlService` de Apps Script para renderizar los diálogos de usuario y `GroupsApp` para interactuar con Google Groups. La lógica de backend se encuentra en el archivo `Código.gs`.
+*   **Internacionalización (i18n):** La herramienta detecta automáticamente el idioma del usuario (español o inglés) usando `Session.getActiveUserLocale()`. Todos los textos de la interfaz se almacenan en un objeto `STRINGS` para facilitar su traducción y mantenimiento.
+*   **Dependencias:** La interfaz de los diálogos está construida con HTML y estilizada con **Bootstrap 5**, cargado a través de una CDN para mantener la herramienta ligera.
+
 ## Privacidad de Datos
 
 *   Todo el código se ejecuta dentro del entorno seguro de tu propia cuenta de Google.
 *   Los datos de tus grupos y miembros se almacenan únicamente en tu hoja de cálculo personal.
 *   Esta herramienta no transmite ninguna información fuera de tu cuenta de Google.
+
+## Créditos y Contribuciones
+
+Este proyecto ha sido creado y es mantenido por [Pablo Felip](https://www.linkedin.com/in/pfelipm/).
 
 ## Licencia
 

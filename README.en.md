@@ -21,6 +21,7 @@ The ShareSquad extension was designed to be a lightweight, agnostic tool focused
 
 *   **Import from Google Groups:** Scans the groups the user belongs to and dumps the members (group email and member email) into a new spreadsheet.
 *   **Compatible JSON Export:** Converts the data from the generated spreadsheet into the JSON format that the ShareSquad extension's import function can read.
+*   **Multi-language Support:** Automatic language detection (Spanish and English) for the user interface.
 
 ## Installation
 
@@ -54,11 +55,21 @@ The process has two phases: importing from Google Groups to the sheet, and expor
 
 Your Google Groups and members will now appear as "squads" in the extension, ready to be added to any Notion page.
 
+## Technical Details
+
+*   **Architecture:** The script uses Apps Script's `HtmlService` to render the user dialogs and `GroupsApp` to interact with Google Groups. The backend logic resides in the `Código.gs` file.
+*   **Internationalization (i18n):** The tool automatically detects the user's language (Spanish or English) using `Session.getActiveUserLocale()`. All UI texts are stored in a `STRINGS` object to facilitate translation and maintenance.
+*   **Dependencies:** The dialog interface is built with HTML and styled with **Bootstrap 5**, loaded via a CDN to keep the tool lightweight.
+
 ## Data Privacy
 
 *   All code runs within the secure environment of your own Google account.
 *   Your group and member data is stored only in your personal spreadsheet.
 *   This tool does not transmit any information outside of your Google account.
+
+## Credits and Contributions
+
+This project was created and is maintained by [Pablo Felip](https://www.linkedin.com/in/pfelipm/).
 
 ## License
 
