@@ -1,1 +1,65 @@
-# sharesquad-notion-companion
+[🇬🇧 English version](README.en.md)
+
+# ShareSquad Companion para Hojas de Cálculo de Google™
+
+## Descripción
+
+**ShareSquad Companion** es una herramienta de Hojas de Cálculo de Google (Google Sheets) diseñada para funcionar como un complemento para la extensión de Chrome **[ShareSquad para Notion™](https://github.com/pfelipm/sharesquad-notion)**.
+
+Su propósito es actuar como un **puente entre tus Grupos de Google (Google Groups) y la extensión ShareSquad**. Te permite importar los miembros de tus grupos de Google a una hoja de cálculo y luego exportarlos en el formato JSON exacto que la extensión ShareSquad necesita para funcionar.
+
+### ¿Por qué existe esta herramienta?
+
+La extensión ShareSquad fue diseñada para ser una herramienta ligera y agnóstica, centrada únicamente en mejorar la gestión de invitados en Notion. Integrar directamente la funcionalidad de Google Groups en la extensión habría implicado dos desafíos importantes:
+
+1.  **Complejidad de la Autenticación (OAuth):** Acceder a los Grupos de Google de un usuario requiere un proceso de autenticación (OAuth 2.0) que debe ser verificado y aprobado por Google. Este es un paso complejo y laborioso para una extensión experimental y no publicada.
+2.  **Especificidad del Ecosistema:** La integración directa limitaría conceptualmente la extensión al ecosistema de Google, cuando su función principal está ligada a Notion, una plataforma independiente.
+
+**ShareSquad Companion** es la solución pragmática a este problema: una herramienta separada que se ejecuta de forma segura en el entorno de Google del propio usuario, permitiéndole preparar los datos de sus grupos para importarlos fácilmente a la extensión.
+
+## Características
+
+*   **Importación desde Google Groups:** Analiza los grupos a los que pertenece el usuario y vuelca los miembros (email del grupo y email del miembro) en una nueva hoja de cálculo.
+*   **Exportación a JSON compatible:** Convierte los datos de la hoja de cálculo generada al formato JSON que la función de importación de la extensión ShareSquad puede leer.
+
+## Instalación
+
+La instalación no requiere descargar nada. Simplemente, haz una copia de la plantilla pública de Google Sheets:
+
+1.  **Abre la Plantilla:** Haz clic en el siguiente enlace para abrir la Hoja de Cálculo maestra:
+    *   **[Plantilla Pública de ShareSquad Companion](https://docs.google.com/spreadsheets/d/1Y3wp_gu7BZqxnn5Hnzo5nWmtJKh_HmnqNXQFJ_XSY54/edit)**
+2.  **Haz una Copia:** Ve al menú `Archivo` → `Hacer una copia`.
+3.  **¡Listo!** La copia que has creado en tu propio Google Drive contiene todo el código necesario y está lista para usar. Al abrirla, aparecerá un nuevo menú llamado **"ShareSquad Companion"**.
+
+## Modo de Uso
+
+El proceso tiene dos fases: importar desde Google Groups a la hoja, y exportar desde la hoja al formato JSON.
+
+### Fase 1: Importar Grupos a la Hoja de Cálculo
+
+1.  **Abre tu copia** de la Hoja de Cálculo.
+2.  En el menú, ve a `ShareSquad Companion` → `Importar grupos...`.
+3.  **Autoriza el script:** La primera vez que lo uses, Google te pedirá permiso para que el script pueda acceder a tus Grupos de Google y modificar tus hojas de cálculo. Es un paso necesario y seguro, ya que el código se ejecuta únicamente en tu cuenta.
+4.  **Selecciona los grupos:** En el diálogo que aparece, elige los grupos cuyos miembros quieres importar.
+5.  Haz clic en **"Importar"**. Se creará una nueva pestaña en tu hoja con los correos del grupo y de sus miembros.
+
+### Fase 2: Exportar a JSON y Usar en la Extensión
+
+1.  Una vez generada la hoja, ve al menú `ShareSquad Companion` → `Exportar a JSON...`.
+2.  **Selecciona la hoja** que acabas de crear.
+3.  Haz clic en **"Exportar"**. Aparecerá un diálogo con el texto en formato JSON.
+4.  **Copia todo el texto** del cuadro.
+5.  Abre la extensión **ShareSquad** en Notion, ve a la pestaña de `Backup` (Copia de seguridad).
+6.  Pega el texto JSON en el área de **"Importar"** y haz clic en el botón para importar.
+
+Tus grupos y miembros de Google Groups aparecerán ahora como "squads" en la extensión, listos para ser añadidos a cualquier página de Notion.
+
+## Privacidad de Datos
+
+*   Todo el código se ejecuta dentro del entorno seguro de tu propia cuenta de Google.
+*   Los datos de tus grupos y miembros se almacenan únicamente en tu hoja de cálculo personal.
+*   Esta herramienta no transmite ninguna información fuera de tu cuenta de Google.
+
+## Licencia
+
+Este proyecto se distribuye bajo la licencia GPL-3.0. Consulta el archivo `LICENSE` para más detalles.
