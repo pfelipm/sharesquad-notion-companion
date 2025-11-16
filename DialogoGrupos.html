@@ -24,7 +24,6 @@
     <div id="alert-container"></div>
 
     <p id="instructions"><!-- Se rellenará con JS --></p>
-    <!-- NUEVO PÁRRAFO DE ADVERTENCIA -->
     <p class="text-muted small" id="warning-nested"><!-- Se rellenará con JS --></p>
 
     <!-- Lista de Grupos -->
@@ -34,7 +33,9 @@
       </div>
       <span id="loading-groups-text" class="ms-2"><!-- Se rellenará con JS --></span>
     </div>
-    <div id="group-list">
+
+    <!-- ¡NUEVO! (UX Botón) 'onchange' para detectar selección -->
+    <div id="group-list" onchange="actualizarEstadoBoton()">
       <!-- Los checkboxes se insertarán aquí -->
     </div>
 
@@ -48,7 +49,9 @@
     <!-- Botones de Acción -->
     <footer class="mt-3 text-end">
       <button type="button" class="btn btn-secondary" id="btn-close"><!-- Se rellenará con JS --></button>
-      <button type="button" class="btn btn-primary" id="btn-import">
+      
+      <!-- ¡NUEVO! (UX Botón) Deshabilitado por defecto -->
+      <button type="button" class="btn btn-primary" id="btn-import" disabled>
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
         <span id="btn-import-text"><!-- Se rellenará con JS --></span>
       </button>
@@ -56,6 +59,9 @@
 
     <!-- JS del Cliente -->
     <script>
+      // ¡NUEVO! (Redimensionar) Constante de altura
+      const DIALOGO_ALTO_ORIGINAL = 500; // Sincronizado con Code.gs
+
       document.addEventListener("DOMContentLoaded", function() {
         // --- 1. Aplicar Traducciones ---
         document.getElementById("instructions").innerText = t.importInstructions;
@@ -74,7 +80,7 @@
         // --- 3. Cargar Grupos ---
         google.script.run
           .withSuccessHandler(mostrarGrupos)
-          .withFailureHandler(handleInitialError) // <-- ¡CORRECCIÓN! Usar el nuevo handler
+          .withFailureHandler(handleInitialError)
           .obtenerGruposDeUsuario();
       });
 
@@ -83,7 +89,6 @@
        */
       function handleInitialError(error) {
         document.getElementById("group-list-loading").style.display = "none";
-        // Asegurarse de que 'error' es un string, ya que puede ser un objeto
         const errorMessage = error.message ? error.message : (typeof error === 'object' ? JSON.stringify(error) : error);
         mostrarAlerta(errorMessage, "danger");
       }
@@ -93,7 +98,6 @@
         document.getElementById("group-list-loading").style.display = "none";
         
         if (groups.error) {
-          // 'groups.error' ya es un string localizado desde el servidor
           mostrarAlerta(groups.error);
           return;
         }
@@ -107,7 +111,6 @@
         groups.forEach(group => {
           const div = document.createElement("div");
           div.className = "form-check";
-          // --- MODIFICACIÓN: Mostrar solo el email para evitar redundancia ---
           div.innerHTML = `
             <input class="form-check-input" type="checkbox" value="${group.email}" id="chk-${group.email}">
             <label class="form-check-label" for="chk-${group.email}">
@@ -120,14 +123,19 @@
 
       /** Maneja el clic en "Importar" */
       function handleImport() {
+        // --- ¡NUEVO! (Redimensionar) Limpiar alertas y resetear altura ---
+        limpiarAlertaYResetearAltura();
+        
         mostrarCarga(true);
         const selectedEmails = [];
         document.querySelectorAll("#group-list input[type='checkbox']:checked").forEach(chk => {
           selectedEmails.push(chk.value);
         });
 
+        // (UX Botón) Esta validación ya no es crítica, pero es una
+        // buena segunda comprobación.
         if (selectedEmails.length === 0) {
-          mostrarAlerta(t.errorNoGroupsSelected); // <-- ¡CORRECCIÓN! Llamar a mostrarAlerta
+          mostrarAlerta(t.errorNoGroupsSelected);
           mostrarCarga(false);
           return;
         }
@@ -141,22 +149,29 @@
       /** Callback de éxito para la importación */
       function importacionFinalizada(result) {
         if (result.error) {
-          importacionFallida({ message: result.error }); // Error de lógica del servidor
+          importacionFallida({ message: result.error });
           return;
         }
         
-        // Mostrar éxito y cerrar
-        mostrarAlerta(result.message, "success");
-        setTimeout(() => {
-          google.script.host.close();
-        }, 2000); // Cerrar tras 2 segundos
+        const alertType = result.type === "warning" ? "warning" : "success";
+        mostrarAlerta(result.message, alertType);
+        
+        if (alertType === "success") {
+          setTimeout(() => {
+            google.script.host.close();
+          }, 2000);
+        } else {
+          // Si hay una advertencia (grupos fallidos), no cerramos
+          mostrarCarga(false);
+          // (UX Botón) Desactivamos el botón de nuevo
+          actualizarEstadoBoton(); 
+        }
       }
 
       /** Callback de fallo para la importación */
       function importacionFallida(error) {
         mostrarCarga(false);
-        // 'error.message' es la forma estándar de obtener el texto del error
-        mostrarAlerta(error.message); // <-- ¡CORRECCIÓN! Llamar a mostrarAlerta
+        mostrarAlerta(error.message);
       }
 
       // --- Funciones de UI Auxiliares ---
@@ -168,7 +183,17 @@
         document.getElementById("btn-close").disabled = isLoading;
       }
 
-      /** Muestra una alerta de Bootstrap */
+      /** * ¡NUEVO! (UX Botón)
+       * Activa/desactiva el botón de importar basado en la selección.
+       */
+      function actualizarEstadoBoton() {
+        const anySelected = document.querySelectorAll("#group-list input[type='checkbox']:checked").length > 0;
+        document.getElementById("btn-import").disabled = !anySelected;
+      }
+
+      /** * ¡CORREGIDO Y MEJORADO!
+       * Muestra una alerta de Bootstrap y ajusta la altura del diálogo.
+       */
       function mostrarAlerta(message, type = "danger") {
         const container = document.getElementById("alert-container");
         container.innerHTML = `
@@ -177,8 +202,24 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
         `;
-        // Usar Bootstrap para inicializar el descarte de la alerta
-        new bootstrap.Alert(container.querySelector('.alert'));
+        
+        // ¡CORRECCIÓN! Eliminada la línea 'new bootstrap.Alert(...)'
+        // Esto previene el error fatal. El botón [x] funcionará
+        // si el JS de Bootstrap se carga, gracias a 'data-bs-dismiss'.
+        
+        // ¡NUEVO! (Redimensionar) Ajustar altura del diálogo
+        setTimeout(() => {
+          // Usar 'scrollHeight' para obtener la altura total del contenido
+          google.script.host.setHeight(document.body.scrollHeight);
+        }, 50); // Pequeño retraso para asegurar que el DOM se actualice
+      }
+
+      /** * ¡NUEVO! (Redimensionar)
+       * Limpia las alertas y resetea la altura del diálogo.
+       */
+      function limpiarAlertaYResetearAltura() {
+        document.getElementById("alert-container").innerHTML = "";
+        google.script.host.setHeight(DIALOGO_ALTO_ORIGINAL);
       }
 
     </script>
