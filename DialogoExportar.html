@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <!-- Cargar Bootstrap 5 (¡CORREGIDO 'xintegrity'!) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+      body { padding: 1rem; }
+    </style>
+  </head>
+  <body>
+    <!-- 
+      ¡REFACTORIZADO! 
+      Usar el método de inyección de scriptlet estándar.
+    -->
+    <script>
+      const t = <?!= t ?>;
+      const CONFIG = <?!= CONFIG ?>;
+    </script>
+
+    <!-- Contenedor para Alertas -->
+    <div id="alert-container"></div>
+
+    <p id="instructions"><!-- Se rellenará con JS --></p>
+
+    <!-- Loading Hojas -->
+    <div id="loading-sheets" class="text-center my-3">
+       <div class="spinner-border spinner-border-sm" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <span class="ms-2"><!-- Se rellenará con JS --></span>
+    </div>
+
+    <!-- Selector de Hoja -->
+    <select class="form-select" id="sheet-select" disabled>
+      <!-- Opciones se insertarán aquí -->
+    </select>
+
+    <!-- Botones de Acción -->
+    <footer class="mt-3 text-end">
+      <button type="button" class="btn btn-secondary" id="btn-close"><!-- Se rellenará con JS --></button>
+      <button type="button" class="btn btn-primary" id="btn-export">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+        <span id="btn-export-text"><!-- Se rellenará con JS --></span>
+      </button>
+    </footer>
+
+    <!-- JS del Cliente -->
+    <script>
+      const DIALOGO_ALTO_ORIGINAL = 500; // Sincronizado con Code.gs
+
+      document.addEventListener("DOMContentLoaded", function() {
+        // --- 1. Aplicar Traducciones (Ahora es seguro) ---
+        document.getElementById("instructions").innerText = t.exportInstructions;
+        document.getElementById("loading-sheets").querySelector("span").innerText = t.loading;
+        document.getElementById("btn-close").innerText = t.close;
+        document.getElementById("btn-export-text").innerText = t.exportButton;
+        document.getElementById("btn-export").disabled = true;
+
+        // --- 2. Handlers de Botones ---
+        document.getElementById("btn-close").addEventListener("click", () => {
+          google.script.host.close();
+        });
+        
+        document.getElementById("btn-export").addEventListener("click", handleExport);
+
+        // --- 3. Cargar Hojas ---
+        google.script.run
+          .withSuccessHandler(mostrarHojas)
+          .withFailureHandler(handleInitialError)
+          .obtenerHojasExportadas();
+      });
+
+      /** Handler de error para la carga inicial */
+      function handleInitialError(error) {
+        document.getElementById("loading-sheets").style.display = "none";
+        const errorMessage = error.message ? error.message : (typeof error === 'object' ? JSON.stringify(error) : error);
+        mostrarAlerta(errorMessage, "danger");
+      }
+
+      /** Muestra la lista de hojas en el dropdown */
+      function mostrarHojas(sheetNames) {
+        document.getElementById("loading-sheets").style.display = "none";
+
+        if (sheetNames.error) {
+          handleInitialError({ message: sheetNames.error });
+          return;
+        }
+        
+        const select = document.getElementById("sheet-select");
+        if (sheetNames.length === 0) {
+          select.disabled = true;
+          select.innerHTML = `<option>${t.errorNoSheets}</option>`;
+          return;
+        }
+
+        select.disabled = false;
+        document.getElementById("btn-export").disabled = false;
+        select.innerHTML = sheetNames
+          .map(name => `<option value="${name}">${name}</option>`)
+          .join("");
+      }
+
+      /** Maneja el clic en "Exportar" */
+      function handleExport() {
+        limpiarAlertaYResetearAltura(); // ¡NUEVO!
+        mostrarCarga(true);
+
+        const select = document.getElementById("sheet-select");
+        const nombreHoja = select.value;
+
+        google.script.run
+          .withSuccessHandler(descargarJson)
+          .withFailureHandler(exportacionFallida)
+          .generarJsonDeHoja(nombreHoja);
+      }
+
+      /** Callback de éxito: Inicia la descarga del JSON */
+      function descargarJson(result) {
+        if (result.error) {
+          exportacionFallida({ message: result.error });
+          return;
+        }
+
+        const jsonString = JSON.stringify(result, null, 2);
+        const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(jsonString);
+        
+        const link = document.createElement("a");
+        link.setAttribute("href", dataUri);
+        link.setAttribute("download", "sharesquad_export.json");
+        document.body.appendChild(link);
+        
+        link.click();
+        document.body.removeChild(link);
+
+        mostrarCarga(false);
+        google.script.host.close();
+      }
+
+      /** Callback de fallo para la exportación */
+      function exportacionFallida(error) {
+        mostrarCarga(false);
+        mostrarAlerta(error.message);
+      }
+
+      // --- Funciones de UI Auxiliares ---
+
+      /** Muestra/oculta el spinner de carga */
+      function mostrarCarga(isLoading) {
+        const btn = document.getElementById("btn-export");
+        btn.disabled = isLoading;
+        btn.querySelector("span[role='status']").style.display = isLoading ? "inline-block" : "none";
+        btn.querySelector("#btn-export-text").style.display = isLoading ? "none" : "inline-block";
+        document.getElementById("btn-close").disabled = isLoading;
+      }
+
+      /** Muestra una alerta de Bootstrap y ajusta la altura */
+      function mostrarAlerta(message, type = "danger") {
+        const container = document.getElementById("alert-container");
+        container.innerHTML = `
+          <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        `;
+        new bootstrap.Alert(container.querySelector('.alert'));
+
+        setTimeout(() => {
+          google.script.host.setHeight(document.body.scrollHeight);
+        }, 50);
+      }
+
+      /** Limpia las alertas y resetea la altura */
+      function limpiarAlertaYResetearAltura() {
+        document.getElementById("alert-container").innerHTML = "";
+        google.script.host.setHeight(DIALOGO_ALTO_ORIGINAL);
+      }
+
+    </script>
+    
+    <!-- JS de Bootstrap (¡CORREGIDO 'xintegrity'!) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>
