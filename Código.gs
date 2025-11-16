@@ -55,7 +55,7 @@ const STRINGS = {
     importSuccess: "¡Importación completada! Todos los miembros se han añadido a una nueva hoja.",
     importSuccessWithErrors: "Importación completada. No se pudo acceder a {0} grupo(s): {1}. El resto de miembros se ha añadido.", // <-- NUEVA LÍNEA
     // Diálogo Exportar
-    exportInstructions: "Selecciona la hoja de cálculo que deseas exportar a formato JSON.",
+    exportInstructions: "Selecciona la pestaña de la hoja de cálculo que deseas exportar a formato JSON.",
     exportButton: "Exportar",
     // Botones
     close: "Cerrar",
@@ -97,7 +97,7 @@ const STRINGS = {
     importSuccess: "Import complete! All members have been added to a new sheet.",
     importSuccessWithErrors: "Import complete. Could not access {0} group(s): {1}. Remaining members were added.", // <-- NEW LINE
     // Export Dialog
-    exportInstructions: "Select the spreadsheet you want to export to JSON format.",
+    exportInstructions: "Select the spreadsheet tab you want to export to JSON format.",
     exportButton: "Export",
     // Buttons
     close: "Close",
@@ -191,7 +191,7 @@ function mostrarDialogoGrupos() {
   mostrarDialogo_("importTitle", "DialogoGrupos.html");
 }
 
-/** MMuestra el diálogo de exportación a JSON. */
+/** Muestra el diálogo de exportación a JSON. */
 function mostrarDialogoExportar() {
   mostrarDialogo_("exportTitle", "DialogoExportar.html");
 }
@@ -206,7 +206,7 @@ function mostrarDialogoAcercaDe() {
   template.CONFIG = CONFIG;
 
   // Usar dimensiones personalizadas para este diálogo
-  const html = template.evaluate().setWidth(500).setHeight(410);
+  const html = template.evaluate().setWidth(500).setHeight(470);
   SpreadsheetApp.getUi().showModalDialog(html, t.aboutTitle);
 }
 
