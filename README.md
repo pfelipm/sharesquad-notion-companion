@@ -2,6 +2,8 @@
 
 # ShareSquad Companion para Hojas de Cálculo de Google™
 
+![Imagen de la extensión en funcionamiento](./readme-archivos/ES%20destacado.png)
+
 ## Descripción
 
 **ShareSquad Companion** es una herramienta de Hojas de Cálculo de Google (Google Sheets) diseñada para funcionar como un complemento para la extensión de Chrome **[ShareSquad para Notion™](https://github.com/pfelipm/sharesquad-notion)**.

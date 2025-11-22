@@ -2,6 +2,8 @@
 
 # ShareSquad Companion for Google Sheets™
 
+![Image of the extension in action](./readme-archivos/EN%20destacado.png)
+
 ## Overview
 
 **ShareSquad Companion** is a Google Sheets tool designed to work as a companion to the **[ShareSquad for Notion™](https://github.com/pfelipm/sharesquad-notion)** Chrome extension.
