@@ -37,7 +37,7 @@ const STRINGS = {
     importTitle: "Importar Grupos de Google",
     exportTitle: "Exportar a JSON de ShareSquad",
     aboutTitle: "Acerca de ShareSquad Companion",
-    // Cabeceras de Hoja (NUEVO)
+    // Cabeceras de Hoja
     headerGroupEmail: "Email del Grupo",
     headerMemberEmail: "Email del Miembro",
     // Diálogo "Acerca de"
@@ -53,7 +53,7 @@ const STRINGS = {
     importLoadingGroups: "Cargando grupos...",
     importButton: "Importar",
     importSuccess: "¡Importación completada! Todos los miembros se han añadido a una nueva hoja.",
-    importSuccessWithErrors: "Importación completada. No se pudo acceder a {0} grupo(s): {1}. El resto de miembros se ha añadido.", // <-- NUEVA LÍNEA
+    importSuccessWithErrors: "Importación completada. No se pudo acceder a {0} grupo(s): {1}. El resto de miembros se ha añadido.",
     // Diálogo Exportar
     exportInstructions: "Selecciona la pestaña de la hoja de cálculo que deseas exportar a formato JSON.",
     exportButton: "Exportar",
@@ -64,7 +64,7 @@ const STRINGS = {
     errorGetGroups: "No se pudieron obtener los grupos. Asegúrate de tener los permisos necesarios.",
     errorNoGroupsSelected: "No has seleccionado ningún grupo.",
     errorImport: "Ocurrió un error durante la importación.",
-    errorNoMembersFetched: "No se recuperó ningún miembro. Los grupos pueden estar vacíos o no tener permisos para verlos.", // <-- NUEVA LÍNEA
+    errorNoMembersFetched: "No se recuperó ningún miembro. Los grupos pueden estar vacíos o no tener permisos para verlos.",
     errorGetSheets: "No se pudieron obtener las hojas exportadas.",
     errorNoSheets: "No se encontraron hojas exportadas por ShareSquad Companion.",
     errorSheetNotFound: "No se pudo encontrar la hoja seleccionada.",
@@ -79,7 +79,7 @@ const STRINGS = {
     importTitle: "Import Google Groups",
     exportTitle: "Export to ShareSquad JSON",
     aboutTitle: "About ShareSquad Companion",
-    // Sheet Headers (NEW)
+    // Sheet Headers
     headerGroupEmail: "Group Email",
     headerMemberEmail: "Member Email",
     // About Dialog
@@ -95,7 +95,7 @@ const STRINGS = {
     importLoadingGroups: "Loading groups...",
     importButton: "Import",
     importSuccess: "Import complete! All members have been added to a new sheet.",
-    importSuccessWithErrors: "Import complete. Could not access {0} group(s): {1}. Remaining members were added.", // <-- NEW LINE
+    importSuccessWithErrors: "Import complete. Could not access {0} group(s): {1}. Remaining members were added.",
     // Export Dialog
     exportInstructions: "Select the spreadsheet tab you want to export to JSON format.",
     exportButton: "Export",
@@ -106,7 +106,7 @@ const STRINGS = {
     errorGetGroups: "Could not retrieve groups. Make sure you have the necessary permissions.",
     errorNoGroupsSelected: "You have not selected any groups.",
     errorImport: "An error occurred during the import.",
-    errorNoMembersFetched: "No members were retrieved. Selected groups may be empty or you may lack permissions to view them.", // <-- NEW LINE
+    errorNoMembersFetched: "No members were retrieved. Selected groups may be empty or you may lack permissions to view them.",
     errorGetSheets: "Could not retrieve exported sheets.",
     errorNoSheets: "No sheets exported by ShareSquad Companion were found.",
     errorSheetNotFound: "Could not find the selected sheet.",
@@ -181,7 +181,7 @@ function mostrarDialogo_(titleKey, filename) {
   template.t = JSON.stringify(t);
   template.CONFIG = JSON.stringify(CONFIG);
 
-  // Ancho aumentado a 500px
+  // Ancho fijo de 500px para Importación/Exportación
   const html = template.evaluate().setWidth(500).setHeight(500);
   SpreadsheetApp.getUi().showModalDialog(html, t[titleKey]);
 }
@@ -205,7 +205,7 @@ function mostrarDialogoAcercaDe() {
   template.t = t;
   template.CONFIG = CONFIG;
 
-  // Usar dimensiones personalizadas para este diálogo
+  // Usar dimensiones personalizadas (410px de alto para evitar barra)
   const html = template.evaluate().setWidth(500).setHeight(470);
   SpreadsheetApp.getUi().showModalDialog(html, t.aboutTitle);
 }
@@ -228,7 +228,6 @@ function obtenerGruposDeUsuario() {
         name: group.getEmail(),
         email: group.getEmail()
       }))
-      // --- RESPUESTA: La ordenación ya se está realizando aquí ---
       .sort((a, b) => a.name.localeCompare(b.name)); // Ordenar alfabéticamente
   } catch (e) {
     Logger.log(e);
@@ -251,22 +250,30 @@ function procesarGruposSeleccionados(emailsDeGrupos) {
   const datosParaHoja = [];
   const gruposFallidos = [];
 
-  // --- 1. REFACTOR: Recopilar datos de forma resiliente ---
+
+  // --- IMPLEMENTACIÓN (A): Ordenar alfabéticamente los grupos seleccionados ---
+  emailsDeGrupos.sort(); // Ordena el array por email del grupo (alfabético)
+
+  // --- 1. REFACTOR: Recopilar datos de forma resiliente (en memoria) ---
   emailsDeGrupos.forEach(emailGrupo => {
     try {
       const group = GroupsApp.getGroupByEmail(emailGrupo);
       const members = group.getUsers();
       
       if (members.length > 0) {
-        const datosGrupo = members.map(miembro => [
-          emailGrupo,            // Col A
-          miembro.getEmail()     // Col B
+        // --- IMPLEMENTACIÓN (B): Obtener emails y ordenar alfabéticamente ---
+        const memberEmails = members.map(miembro => miembro.getEmail());
+        memberEmails.sort(); // Ordena alfabéticamente los emails de los miembros
+        // Mapear los emails ordenados al formato de fila [[grupo, miembro], ...]
+        const datosGrupo = memberEmails.map(emailMiembro => [
+          emailGrupo,           // Col A (Email del Grupo)
+          emailMiembro          // Col B (Email del Miembro)
         ]);
         datosParaHoja.push(...datosGrupo); // Añadir filas al array
       }
       // Si members.length es 0, no es un error, solo está vacío.
     } catch (e) {
-      // Error de permisos (como el que viste)
+      // Error de permisos o cualquier otro fallo en el grupo individual
       Logger.log(`Error al procesar el grupo ${emailGrupo}: ${e.message}`);
       gruposFallidos.push(emailGrupo);
     }
@@ -284,20 +291,21 @@ function procesarGruposSeleccionados(emailsDeGrupos) {
   // --- 3. REFACTOR: Si hay datos, crear la hoja y escribir ---
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const fecha = new Date().toISOString().slice(0, 19).replace("T", " ");
+    // const fecha = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const fecha = Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), "yyyy-MM-dd HH:mm:ss");
     const nombreHoja = `SS_Export_${fecha}`;
     const sheet = ss.insertSheet(nombreHoja);
 
     sheet.addDeveloperMetadata(METADATA_KEY, "true");
 
-    // Cabeceras (traducidas y actualizadas)
+    // Cabeceras (traducidas)
     const cabeceras = [
       translate_("headerGroupEmail"),
       translate_("headerMemberEmail")
     ];
     sheet.getRange(1, 1, 1, cabeceras.length).setValues([cabeceras]).setFontWeight("bold");
 
-    // Escribir todos los datos de una vez
+    // Escribir todos los datos de una vez(desde la fila 2)
     sheet.getRange(2, 1, datosParaHoja.length, datosParaHoja[0].length).setValues(datosParaHoja);
     
     sheet.activate();
@@ -307,7 +315,7 @@ function procesarGruposSeleccionados(emailsDeGrupos) {
       let warningMsg = translate_("importSuccessWithErrors")
                         .replace("{0}", gruposFallidos.length)
                         .replace("{1}", gruposFallidos.join(", "));
-      // Devolver un 'message' pero con tipo 'warning'
+      // Devolver un 'message' con tipo 'warning'
       return { message: warningMsg, type: "warning" }; 
     } else {
       // Éxito total
@@ -336,6 +344,7 @@ function obtenerHojasExportadas() {
     const allSheets = ss.getSheets();
     const hojasExportadas = [];
 
+    // Comprobar la metadata de la hoja (más robusto que el nombre)
     allSheets.forEach(sheet => {
       const metadata = sheet.getDeveloperMetadata();
       const esHojaExportada = metadata.some(meta => meta.getKey() === METADATA_KEY);
@@ -408,6 +417,8 @@ function generarJsonDeHoja(nombreHoja) {
       // --- 1. Normalizar Usuario ---
       if (!mapaUsuarios[emailUsuario]) {
         // Usuario nuevo, crear ID y añadirlo
+        // NOTA: Usar i o un contador secuencial aquí asegura que los IDs son diferentes 
+        // para diferentes usuarios, incluso si Date.now() es el mismo.
         userId = `u_${Date.now() + i}`; // ID único simple
         mapaUsuarios[emailUsuario] = userId;
         jsonOutput.users.push({
